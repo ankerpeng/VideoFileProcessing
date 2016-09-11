@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,10 +24,13 @@ namespace VFP.WinUI
 
         private MProcessAysn _currentMainForm;
 
+        private CutPicture _cup;
+
 
         public MVideoFileDispose(MProcessAysn currentMainForm)
         {
             _currentMainForm = currentMainForm;
+            _cup = new CutPicture();
         }
 
 
@@ -61,18 +65,20 @@ namespace VFP.WinUI
             list = list.Where(c => !c.IsGenerateScreenShot).ToList();
             if (list.Count == 0) return;
             decimal i = 1.0m;
+            _cup.RegisterProcess(new Process());
             foreach (var mf in list)
             {
                 if (mf.Duration <= 0)
                 {
-                    mf.DurationStr = mf.GetVideoDurationStr(mf.PhysicsPath);
+                    mf.DurationStr = mf.GetVideoDurationStr(_cup, mf.PhysicsPath);
                 }
-                mf.ScreenshotsFileName = mf.GetVideoScreenshot(mf.PhysicsPath, mf.Duration, saveFilePath);
+                mf.ScreenshotsFileName = mf.GetVideoScreenshot(_cup,mf.PhysicsPath, mf.Duration, saveFilePath);
                 mf.ScreenshotsFilePhysicsPath = saveFilePath + @"\" + mf.ScreenshotsFileName;
                 mf.IsGenerateScreenShot = true;
                 _currentMainForm.InformDisposeProgressInvoke(InformTypeEnum.生成视频截图, (int)((i / list.Count) * 100));
                 i++;
             }
+            _cup.DisposeProcess();
         }
 
         private void GetDuration(List<MVideoFile> list, string saveFilePath)
@@ -81,12 +87,14 @@ namespace VFP.WinUI
             list = list.Where(c => c.Duration == 0).ToList();
             if (list.Count == 0) return;
             decimal i = 1.0m;
+            _cup.RegisterProcess(new Process());
             foreach (var mf in list)
             {
-                mf.DurationStr = mf.GetVideoDurationStr(mf.PhysicsPath);
+                mf.DurationStr = mf.GetVideoDurationStr(_cup,mf.PhysicsPath);
                 _currentMainForm.InformDisposeProgressInvoke(InformTypeEnum.获取视频时长, (int)((i / list.Count) * 100));
                 i++;
             }
+            _cup.DisposeProcess();
         }
 
 

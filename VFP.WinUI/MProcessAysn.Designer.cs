@@ -50,6 +50,7 @@
             this.probGetDuration = new System.Windows.Forms.ProgressBar();
             this.lblProbGetScreenshot = new System.Windows.Forms.Label();
             this.probGetScreenshot = new System.Windows.Forms.ProgressBar();
+            this.btnUpdateDb = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvFileList)).BeginInit();
             this.SuspendLayout();
             // 
@@ -243,11 +244,22 @@
             this.probGetScreenshot.Size = new System.Drawing.Size(87, 23);
             this.probGetScreenshot.TabIndex = 33;
             // 
+            // btnUpdateDb
+            // 
+            this.btnUpdateDb.Location = new System.Drawing.Point(576, 76);
+            this.btnUpdateDb.Name = "btnUpdateDb";
+            this.btnUpdateDb.Size = new System.Drawing.Size(75, 23);
+            this.btnUpdateDb.TabIndex = 35;
+            this.btnUpdateDb.Text = "更新数据库";
+            this.btnUpdateDb.UseVisualStyleBackColor = true;
+            this.btnUpdateDb.Click += new System.EventHandler(this.btnUpdateDb_Click);
+            // 
             // MProcessAysn
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(743, 470);
+            this.Controls.Add(this.btnUpdateDb);
             this.Controls.Add(this.lblProbGetScreenshot);
             this.Controls.Add(this.probGetScreenshot);
             this.Controls.Add(this.lblProbGetDuration);
@@ -302,5 +314,6 @@
         private System.Windows.Forms.ProgressBar probGetDuration;
         private System.Windows.Forms.Label lblProbGetScreenshot;
         private System.Windows.Forms.ProgressBar probGetScreenshot;
+        private System.Windows.Forms.Button btnUpdateDb;
     }
 }

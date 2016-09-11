@@ -19,7 +19,7 @@ namespace VFP.WinUI
         public static bool UpdateAppSettings(string key, string value)
         {
             var _config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            if (!_config.HasFile)
+            if (!_config.HasFile) 
             {
                 throw new ArgumentException("程序配置文件缺失！");
             }

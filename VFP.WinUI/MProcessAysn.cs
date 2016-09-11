@@ -210,7 +210,7 @@ namespace VFP.WinUI
                     }
                 }
                 workbook.Save(SaveFileDirePath + string.Format(@"\导出结果{0}.xlsx", DateTime.Now.ToString("yyyyMMdd")), SaveFormat.Xlsx);
-                 SetLableMess("【导出完成!】", true);
+                SetLableMess("【导出完成!】", true);
                 return true;
 
             }).Invoke();
@@ -221,60 +221,85 @@ namespace VFP.WinUI
         {
 
             SetLableMess("---开始获取文件---", true);
-            _fileDispose.ReadFileListAsync(DirePath, SaveFileDirePath, new AsyncCallback((result) =>
+            try
             {
-                if (result.IsCompleted)
+                _fileDispose.ReadFileListAsync(DirePath, SaveFileDirePath, new AsyncCallback((result) =>
                 {
-                    var delegateSource = result.AsyncState as ReadFileListDelegate;
-                    if (delegateSource != null)
+                    if (result.IsCompleted)
                     {
-                        var dataResult = delegateSource.EndInvoke(result);
-                        if (dataResult != null)
+                        var delegateSource = result.AsyncState as ReadFileListDelegate;
+                        if (delegateSource != null)
                         {
-                            BindDgvFileList(dataResult);
-                            string mes = string.Format("【文件获取完成，文件总数{0}个,待生成截图:{1}】", dataResult.Count, dataResult.Where(c => !c.IsGenerateScreenShot).Count());
-                            SetLableMess(mes, true);
+                            var dataResult = delegateSource.EndInvoke(result);
+                            if (dataResult != null)
+                            {
+                                BindDgvFileList(dataResult);
+                                string mes = string.Format("【文件获取完成，文件总数{0}个,待生成截图:{1}】", dataResult.Count, dataResult.Where(c => !c.IsGenerateScreenShot).Count());
+                                SetLableMess(mes, true);
+                            }
                         }
                     }
-                }
-            }));
+                }));
+            }
+            catch (Exception ex)
+            {
+                SetLableMess(string.Format("【获取文件发生异常:{0}】", ex.Message), true);
+            }
+            
         }
 
         //获取视频时长
         private void btnGetDuration_Click(object sender, EventArgs e)
         {
             SetLableMess("---开始获取视频时长---", true);
-            _fileDispose.GetDurationAsync(MVideoFileList, new AsyncCallback((result) =>
+            try
             {
-                if (result.IsCompleted)
+                _fileDispose.GetDurationAsync(MVideoFileList, new AsyncCallback((result) =>
                 {
-                    var delegateSource = result.AsyncState as DisposeFileInfoDelegate;
-                    if (delegateSource != null)
+                    if (result.IsCompleted)
                     {
-                        delegateSource.EndInvoke(result);
-                        BindDgvFileList(MVideoFileList);
-                        SetLableMess("【获取视频时长任务已完成！】", true);
+                        var delegateSource = result.AsyncState as DisposeFileInfoDelegate;
+                        if (delegateSource != null)
+                        {
+                            delegateSource.EndInvoke(result);
+                            BindDgvFileList(MVideoFileList);
+                            SetLableMess("【获取视频时长任务已完成！】", true);
+                        }
                     }
-                }
-            }));
+                }));
+            }
+            catch (Exception ex)
+            {
+                SetLableMess(string.Format("【获取视频时长发生异常:{0}】", ex.Message), true);
+            }
+           
         }
 
         //获取截图
         private void btnCreateImg_Click(object sender, EventArgs e)
         {
-            _fileDispose.GenerateScreenshotAsync(MVideoFileList, SaveFileDirePath, new AsyncCallback((result) =>
+            SetLableMess("---开始生成视频截图---", true);
+            try
             {
-                if (result.IsCompleted)
+                _fileDispose.GenerateScreenshotAsync(MVideoFileList, SaveFileDirePath, new AsyncCallback((result) =>
                 {
-                    var delegateSource = result.AsyncState as DisposeFileInfoDelegate;
-                    if (delegateSource != null)
+                    if (result.IsCompleted)
                     {
-                        delegateSource.EndInvoke(result);
-                        BindDgvFileList(MVideoFileList);
-                        SetLableMess("【生成视频截图任务已完成！】", true);
+                        var delegateSource = result.AsyncState as DisposeFileInfoDelegate;
+                        if (delegateSource != null)
+                        {
+                            delegateSource.EndInvoke(result);
+                            BindDgvFileList(MVideoFileList);
+                            SetLableMess("【生成视频截图任务已完成！】", true);
+                        }
                     }
-                }
-            }));
+                }));
+            }
+            catch (Exception ex)
+            {
+                SetLableMess(string.Format("【生成视频截图发生异常:{0}】", ex.Message), true);
+            }
+           
         }
 
         private void btnClearTxt_Click(object sender, EventArgs e)
@@ -282,8 +307,37 @@ namespace VFP.WinUI
             txtDisposeMes.Text = string.Empty;
         }
 
+
         #endregion
 
+        public delegate void UpdateDb();
+
+        private void btnUpdateDb_Click(object sender, EventArgs e)
+        {
+            SetLableMess("---开始写入数据库---", true);
+            try
+            {
+                _dal.UpdateVideoDurationAsync(MVideoFileList, new AsyncCallback((result) =>
+                {
+                    if (result.IsCompleted)
+                    {
+                        var delegateSource = result.AsyncState as UpdateVideoDurationDelegate;
+                        if (delegateSource != null)
+                        {
+                            delegateSource.EndInvoke(result);
+                            BindDgvFileList(MVideoFileList);
+                            SetLableMess("【写入数据库任务已完成！】", true);
+                        }
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+
+                SetLableMess(string.Format("【写入数据库发生异常:{0}】",ex.Message), true);
+            }
+            
+        }
     }
 
 

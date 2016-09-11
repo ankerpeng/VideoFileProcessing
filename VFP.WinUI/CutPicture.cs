@@ -13,6 +13,9 @@ namespace VFP.WinUI
         private string _ffmpegPath;
 
 
+        private Process _process;
+
+
         /// <summary>
         /// 已默认配置ffmpeg工具路径
         /// </summary>
@@ -21,15 +24,27 @@ namespace VFP.WinUI
             _ffmpegPath = AppDomain.CurrentDomain.BaseDirectory + "Config\\ffmpeg.exe";
         }
 
+
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ffmpegfullPath">ffmpeg工具路径</param>
-        public CutPicture(string ffmpegfullPath)
+        public CutPicture( Process process, string ffmpegfullPath="")
         {
-            _ffmpegPath = ffmpegfullPath;
+            _ffmpegPath = ffmpegfullPath == "" ? AppDomain.CurrentDomain.BaseDirectory + "Config\\ffmpeg.exe" : ffmpegfullPath;
+            _process = process ?? new Process();
         }
 
+        public void DisposeProcess()
+        {
+            if (_process != null)
+                _process.Dispose();
+        }
+
+        public void RegisterProcess(Process process)
+        {
+            _process = process ?? new Process();
+        }
 
         /// <summary>
         /// 捕获图片
@@ -47,17 +62,21 @@ namespace VFP.WinUI
             {
                 return "ffmpeg is not find or video is not find!";
             }
+            if (_process == null) return "";
 
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo(_ffmpegPath);
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.CreateNoWindow = true;
+            startInfo.FileName = _ffmpegPath;
+            startInfo.UseShellExecute = false;
             //此处组合成ffmpeg.exe文件需要的参数即可,此处命令在ffmpeg 0.4.9调试通过 
             string FlvImgSize = picWidth.ToString() + "x" + picHeight.ToString();
             startInfo.Arguments = " -i " + videofullPath + " -y -f image2 -ss " + frameNumber + " -t 0.001  -s " + FlvImgSize + " " + savePicFullPath;
-
             try
             {
-                System.Diagnostics.Process.Start(startInfo);
+                _process.StartInfo = startInfo;
+                _process.Start();
+                _process.WaitForExit();
             }
             catch (Exception e)
             {
@@ -67,56 +86,53 @@ namespace VFP.WinUI
             return result;
         }
 
+
         public string GetVideoDuration(string sourceFile)
         {
-            using (System.Diagnostics.Process ffmpeg = new System.Diagnostics.Process())
-            {
-                String duration;  // soon will hold our video's duration in the form "HH:MM:SS.UU"
-                String result;  // temp variable holding a string representation of our video's duration
-                StreamReader errorreader;  // StringWriter to hold output from ffmpeg
 
-                ffmpeg.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                ffmpeg.StartInfo.CreateNoWindow = true;
+            String duration;  // soon will hold our video's duration in the form "HH:MM:SS.UU"
+            String result;  // temp variable holding a string representation of our video's duration
+            StreamReader errorreader;  // StringWriter to hold output from ffmpeg
+            _process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            _process.StartInfo.CreateNoWindow = true;
+            // we want to execute the process without opening a shell
+            _process.StartInfo.UseShellExecute = false;
+            //ffmpeg.StartInfo.ErrorDialog = false;
+            _process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            // redirect StandardError so we can parse it
+            // for some reason the output comes through over StandardError
+            _process.StartInfo.RedirectStandardError = true;
+            // set the file name of our process, including the full path
+            // (as well as quotes, as if you were calling it from the command-line)
+            _process.StartInfo.FileName = _ffmpegPath;
 
-                // we want to execute the process without opening a shell
-                ffmpeg.StartInfo.UseShellExecute = false;
-                //ffmpeg.StartInfo.ErrorDialog = false;
-                ffmpeg.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                // redirect StandardError so we can parse it
-                // for some reason the output comes through over StandardError
-                ffmpeg.StartInfo.RedirectStandardError = true;
+            // set the command-line arguments of our process, including full paths of any files
+            // (as well as quotes, as if you were passing these arguments on the command-line)
+            _process.StartInfo.Arguments = "-i " + sourceFile;
 
-                // set the file name of our process, including the full path
-                // (as well as quotes, as if you were calling it from the command-line)
-                ffmpeg.StartInfo.FileName = _ffmpegPath;
+            // start the process
+            _process.Start();
 
-                // set the command-line arguments of our process, including full paths of any files
-                // (as well as quotes, as if you were passing these arguments on the command-line)
-                ffmpeg.StartInfo.Arguments = "-i " + sourceFile;
+            // now that the process is started, we can redirect output to the StreamReader we defined
+            errorreader = _process.StandardError;
 
-                // start the process
-                ffmpeg.Start();
+            // wait until ffmpeg comes back
+            _process.WaitForExit();
 
-                // now that the process is started, we can redirect output to the StreamReader we defined
-                errorreader = ffmpeg.StandardError;
+            // read the output from ffmpeg, which for some reason is found in Process.StandardError
+            result = errorreader.ReadToEnd();
 
-                // wait until ffmpeg comes back
-                ffmpeg.WaitForExit();
+            // a little convoluded, this string manipulation...
+            // working from the inside out, it:
+            // takes a substring of result, starting from the end of the "Duration: " label contained within,
+            // (execute "ffmpeg.exe -i somevideofile" on the command-line to verify for yourself that it is there)
+            // and going the full length of the timestamp
 
-                // read the output from ffmpeg, which for some reason is found in Process.StandardError
-                result = errorreader.ReadToEnd();
-
-                // a little convoluded, this string manipulation...
-                // working from the inside out, it:
-                // takes a substring of result, starting from the end of the "Duration: " label contained within,
-                // (execute "ffmpeg.exe -i somevideofile" on the command-line to verify for yourself that it is there)
-                // and going the full length of the timestamp
-
-                duration = result.Substring(result.IndexOf("Duration: ") + ("Duration: ").Length, ("00:00:00").Length);
-                return duration;
-            }
+            duration = result.Substring(result.IndexOf("Duration: ") + ("Duration: ").Length, ("00:00:00").Length);
+            return duration;
         }
 
+        
 
 
     }

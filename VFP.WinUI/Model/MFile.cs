@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -116,13 +117,12 @@ namespace VFP.WinUI
 
     public static class MVideoFileExt
     {
-        public static string GetVideoDurationStr(this MVideoFile vf, string fileNamePath)
+        public static string GetVideoDurationStr(this MVideoFile vf, CutPicture cutp, string fileNamePath)
         {
             string vDuration = "";
             try
             {
-                CutPicture cutimg = new CutPicture();
-                vDuration = cutimg.GetVideoDuration(fileNamePath);
+                vDuration = cutp.GetVideoDuration(fileNamePath);
             }
             catch
             {
@@ -130,7 +130,9 @@ namespace VFP.WinUI
             return vDuration;
         }
 
-        public static string GetVideoScreenshot(this MVideoFile vf, string fileNamePath, int videoDuration, string saveDire)
+      
+
+        public static string GetVideoScreenshot(this MVideoFile vf, CutPicture cutp, string fileNamePath, int videoDuration, string saveDire)
         {
             string videoScreenshot = string.Empty;
             string filetitle = System.IO.Path.GetFileNameWithoutExtension(fileNamePath);
@@ -139,17 +141,17 @@ namespace VFP.WinUI
                 return filetitle + ".jpg"; //若存在直接返回文件名称
             try
             {
-                CutPicture cutimg = new CutPicture();
                 if (videoDuration > 60)
-                    cutimg.Cut(fileNamePath, sFileNew, 400, 300, 60.001f);
+                    cutp.Cut(fileNamePath, sFileNew, 400, 300, 60.001f);
                 else
-                    cutimg.Cut(fileNamePath, sFileNew, 400, 300, 1.001f);
+                    cutp.Cut(fileNamePath, sFileNew, 400, 300, 1.001f);
             }
             catch (Exception e)
             {
             }
             return filetitle + ".jpg";
         }
+
 
     }
 
