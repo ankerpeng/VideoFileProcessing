@@ -36,9 +36,9 @@ set TimeLength=@TimeLength where filename=@FileName;
                 SqlHelp.ExecuteNonQuery(cmdText, para);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return false;
+                throw ex;
             }
 
         }
