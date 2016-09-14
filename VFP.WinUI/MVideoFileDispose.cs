@@ -65,9 +65,17 @@ namespace VFP.WinUI
             list = list.Where(c => !c.IsGenerateScreenShot).ToList();
             if (list.Count == 0) return;
             decimal i = 1.0m;
-            _cup.RegisterProcess(new Process());
+            Process process = new Process();
+            _cup.RegisterProcess(process);
             foreach (var mf in list)
             {
+                if (i % 100 == 0)
+                {
+                    _cup.DisposeProcess();
+                    process = new Process();
+                    _cup.RegisterProcess(process);
+                }
+
                 if (mf.Duration <= 0)
                 {
                     mf.DurationStr = mf.GetVideoDurationStr(_cup, mf.PhysicsPath);
@@ -87,9 +95,16 @@ namespace VFP.WinUI
             list = list.Where(c => c.Duration == 0).ToList();
             if (list.Count == 0) return;
             decimal i = 1.0m;
-            _cup.RegisterProcess(new Process());
+            Process process = new Process();
+            _cup.RegisterProcess(process);
             foreach (var mf in list)
             {
+                if (i % 100 == 0)
+                {
+                    _cup.DisposeProcess();
+                    process = new Process();
+                    _cup.RegisterProcess(process);
+                }
                 mf.DurationStr = mf.GetVideoDurationStr(_cup,mf.PhysicsPath);
                 _currentMainForm.InformDisposeProgressInvoke(InformTypeEnum.获取视频时长, (int)((i / list.Count) * 100));
                 i++;
